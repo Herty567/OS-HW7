@@ -7,6 +7,7 @@ import (
     "osproject/shared"
 )
 
+// Initializes and returns a list of 5 disk files for RAID simulation.
 func initDisks() []*shared.Disk {
     var disks []*shared.Disk
     for i := 0; i < 5; i++ {
@@ -21,13 +22,14 @@ func initDisks() []*shared.Disk {
 
 func main() {
     if len(os.Args) < 2 {
-        fmt.Println("Usage: go run main.go [raid0|raid1|raid4|raid5]")
+        fmt.Println("Usage: go run . [raid0|raid1|raid4|raid5]")
         return
     }
 
     disks := initDisks()
     var r raids.RAID
 
+    // Selects the RAID implementation based on the command-line argument
     switch os.Args[1] {
     case "raid0":
         r = raids.NewRAID0(disks)
@@ -42,5 +44,6 @@ func main() {
         return
     }
 
+    // Run the benchmark with the selected RAID configuration
     BenchmarkRAID(r, 100)
 }

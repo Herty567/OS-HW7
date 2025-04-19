@@ -8,6 +8,8 @@ import (
     "osproject/shared"
 )
 
+// BenchmarkRAID performs write and read tests using the given RAID setup.
+// It prints total duration and average time per block for both operations.
 func BenchmarkRAID(r raids.RAID, totalMB int) {
     blockCount := (totalMB * 1024 * 1024) / shared.BlockSize
     data := make([]byte, shared.BlockSize)
@@ -15,7 +17,48 @@ func BenchmarkRAID(r raids.RAID, totalMB int) {
     fmt.Printf("Writing %d blocks (%dMB)...\n", blockCount, totalMB)
     startWrite := time.Now()
     for i := 0; i < blockCount; i++ {
-        rand.Read(data)
+        rand.Read(data) // fill with random data
+        if err := r.Write(i, data); err != nil {
+            fmt.Println("Write error:", err)
+            return
+        }
+    }
+    durationWrite := time.Since(startWrite)
+
+    fmt.Println("Reading data back...")
+    startRead := time.Now()
+    for i := 0; i < blockCount; i++ {
+        _, err := r.Read(i)
+        if err != nil {
+            fmt.Println("Read error:", err)
+            return
+        }
+    }
+    durationRead := time.Since(startRead)
+
+    fmt.Printf("Write time: %.2fs (%.2f ms/block)\n", durationWrite.Seconds(), durationWrite.Seconds()*1000/float64(blockCount))
+    fmt.Printf("Read  time: %.2fs (%.2f ms/block)\n", durationRead.Seconds(), durationRead.Seconds()*1000/float64(blockCount))
+}
+package main
+
+import (
+    "fmt"
+    "math/rand"
+    "time"
+    "osproject/raids"
+    "osproject/shared"
+)
+
+// BenchmarkRAID performs write and read tests using the given RAID setup.
+// It prints total duration and average time per block for both operations.
+func BenchmarkRAID(r raids.RAID, totalMB int) {
+    blockCount := (totalMB * 1024 * 1024) / shared.BlockSize
+    data := make([]byte, shared.BlockSize)
+
+    fmt.Printf("Writing %d blocks (%dMB)...\n", blockCount, totalMB)
+    startWrite := time.Now()
+    for i := 0; i < blockCount; i++ {
+        rand.Read(data) // fill with random data
         if err := r.Write(i, data); err != nil {
             fmt.Println("Write error:", err)
             return
